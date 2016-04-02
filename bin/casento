@@ -1,0 +1,105 @@
+#!/usr/bin/env ruby
+require 'commander/import'
+require 'casento'
+
+program :name, 'Casento'
+program :version, Casento::VERSION
+program :description, 'Command-line tool for scraping data from http://researcharchive.calacademy.org/research/entomology/EntInv'
+
+global_option "--name NAME", String
+global_option "--family FAMILY", String
+global_option "--genus GENUS", String
+global_option "--species SPECIES", String
+global_option "-n", '--country COUNTRY', String, "Country / Nation, e.g. U.S.A"
+global_option "-s", '--state STATE', String, "Full name of state-level political body, e.g. California"
+global_option "-c", '--county COUNTY', String, "Full name of county-level political body, e.g. Alameda"
+global_option "-f", '--format table|csv', String, "Output format"
+
+def search(args, opts)
+  params = {}
+  if name = (opts.delete(:name) || args[0])
+    if name =~ /dae$/
+      params[:family] = name
+    elsif name =~ /ptera$/
+      params[:order] = name
+    else
+      params[:genus], params[:species], params[:subspecies] = name.split
+    end
+  end
+  params[:family] ||= opts.family
+  params[:genus] ||= opts.genus
+  params[:species] ||= opts.species
+  params[:country] ||= opts.country
+  params[:state] ||= opts.state
+  params[:county] ||= opts.county
+  # puts "params: #{params.inspect}"
+  Casento.search(params)
+end
+
+command :occurrences do |c|
+  c.syntax = "casento occurrences [taxon name]"
+  c.action do |args, opts|
+    occurrences = search(args, opts)
+    longest_name = occurrences.map(&:name).sort_by(&:size).last || ""
+    fields = %w(order family genus species country state county)
+    if opts.format == "csv"
+      puts fields.join(',')
+      occurrences.each do |o|
+        puts fields.map{|f| o.send(f)}.join(",")
+      end
+    else
+      puts "Found #{occurrences.size} occurrences:"
+      puts
+      puts fields.map{|f| f.ljust(longest_name.size) }.join(' ')
+      occurrences.each do |o|
+        puts fields.map{|f| o.send(f).to_s.ljust(longest_name.size)}.join(' ')
+      end
+    end
+  end
+end
+
+command :checklist do |c|
+  c.syntax = "casento checklist [taxon name]"
+  c.option "--rank RANK", String, "Generate a checklist for names at this rank"
+  c.action do |args, opts|
+    occurrences = search(args, opts)
+    longest_name = ""
+    unique_name = case opts.rank
+    when "species" then "scientific_name"
+    else
+      opts.rank
+    end
+    uniques = occurrences.uniq{|o|
+      longest_name = o.send(unique_name) if o.send(unique_name).size > longest_name.size
+      o.send(unique_name)
+    }.reject{|o|
+      o.send(unique_name).blank? || (opts.rank == "species" && o.species.blank?)
+    }.sort{|a,b|
+      a.send(unique_name) <=> b.send(unique_name)
+    }
+    fields = %w(order)
+    fields += case opts.rank
+    when "family"
+      %w(family)
+    when "genus"
+      %w(family genus)
+    when "species"
+      %w(family genus species)
+    else
+      %w(family genus species infraspecific_epithet)
+    end
+    if opts.format == "csv"
+      puts fields.join(',')
+      uniques.each do |o|
+        puts fields.map{|f| o.send(f)}.join(",")
+      end
+    else
+      puts "Found #{occurrences.size} occurrences of #{uniques.size} taxa:"
+      puts
+      puts fields.map{|f| f.ljust(longest_name.size)}.join(" ")
+      uniques.each do |o|
+        puts fields.map{|f| o.send(f).to_s.ljust(longest_name.size)}.join(" ")
+      end
+    end
+  end
+end
