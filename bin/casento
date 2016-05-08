@@ -64,8 +64,8 @@ command :checklist do |c|
   c.action do |args, opts|
     occurrences = search(args, opts)
     longest_name = ""
-    unique_name = case opts.rank
-    when "species" then "scientific_name"
+    unique_name = if opts.rank == "species" || opts.rank.blank?
+      "scientific_name"
     else
       opts.rank
     end

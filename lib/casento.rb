@@ -39,7 +39,7 @@ module Casento
       params[rank] = val if val
     end
     url = "#{url}#{URI.encode_www_form( params )}"
-    puts "opening #{url}"
+    # puts "opening #{url}"
     headers = %w(
       order
       family
