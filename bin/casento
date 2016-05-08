@@ -4,7 +4,21 @@ require 'casento'
 
 program :name, 'Casento'
 program :version, Casento::VERSION
-program :description, 'Command-line tool for scraping data from http://researcharchive.calacademy.org/research/entomology/EntInv'
+program :description, <<-EOT
+
+  Command-line tool for scraping data from
+  http://researcharchive.calacademy.org/research/entomology/EntInv. The only
+  option that isn't mostly self-explanatory is the taxon name. It will be
+  smart about matching names ending in "-dae" to families, names enting in
+  "-ptera" to orders, but otherwise it will assume a name in the "Genus
+  species subspecies" format.
+
+  One major caveat: the CAS website is super fussy about certain place names,
+  e.g. "U.S.A.", which must be the acronym, and must have all three periods.
+  Play with the underlying web page and check the URL parameters to resolve
+  problems like that.
+
+EOT
 
 global_option "--name NAME", String
 global_option "--family FAMILY", String
@@ -32,12 +46,12 @@ def search(args, opts)
   params[:country] ||= opts.country
   params[:state] ||= opts.state
   params[:county] ||= opts.county
-  # puts "params: #{params.inspect}"
   Casento.search(params)
 end
 
 command :occurrences do |c|
   c.syntax = "casento occurrences [taxon name]"
+  c.description "List occurrences matching the search parameters."
   c.action do |args, opts|
     occurrences = search(args, opts)
     longest_name = occurrences.map(&:name).sort_by(&:size).last || ""
@@ -60,6 +74,7 @@ end
 
 command :checklist do |c|
   c.syntax = "casento checklist [taxon name]"
+  c.description "Generate a checklist of unique taxa from occurrences matching the search parameters."
   c.option "--rank RANK", String, "Generate a checklist for names at this rank"
   c.action do |args, opts|
     occurrences = search(args, opts)

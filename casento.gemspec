@@ -11,11 +11,11 @@ Gem::Specification.new do |spec|
 
   spec.summary       = "Tool reading the Entomology General Collection Database at the California Academy of Sciences"
   spec.description   = %q{
-    The California Academy of Sciences has databased a great deal of the
+    The California Academy of Sciences has databased a great deal of their
     entomological specimen data, but it's generally only available through
     their own website with no API and no machine-readable export
-    functionality. This gem attempts to ameliorate the sitation by scraping
-    data and presenting it as machine-readable data.
+    functionality. This gem attempts to ameliorate the situation by scraping
+    data and presenting it in a machine-readable format.
   }
   spec.homepage      = "https://github.com/kueda/casento"
   spec.license       = "MIT"
