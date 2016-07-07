@@ -21,7 +21,12 @@ program :description, <<-EOT
 EOT
 
 global_option "--name NAME", String
+global_option "--order ORDER", String
+global_option "--suborder SUBORDER", String
+global_option "--superfamily SUPERFAMILY", String
 global_option "--family FAMILY", String
+global_option "--subfamily SUBFAMILY", String
+global_option "--tribe TRIBE", String
 global_option "--genus GENUS", String
 global_option "--species SPECIES", String
 global_option "-n", '--country COUNTRY', String, "Country / Nation, e.g. U.S.A"
@@ -40,7 +45,12 @@ def search(args, opts)
       params[:genus], params[:species], params[:subspecies] = name.split
     end
   end
+  params[:order] ||= opts.order
+  params[:suborder] ||= opts.suborder
+  params[:superfamily] ||= opts.superfamily
   params[:family] ||= opts.family
+  params[:subfamily] ||= opts.subfamily
+  params[:tribe] ||= opts.tribe
   params[:genus] ||= opts.genus
   params[:species] ||= opts.species
   params[:country] ||= opts.country
@@ -51,7 +61,7 @@ end
 
 command :occurrences do |c|
   c.syntax = "casento occurrences [taxon name]"
-  c.description "List occurrences matching the search parameters."
+  c.description = "List occurrences matching the search parameters."
   c.action do |args, opts|
     occurrences = search(args, opts)
     longest_name = occurrences.map(&:name).sort_by(&:size).last || ""
@@ -74,7 +84,7 @@ end
 
 command :checklist do |c|
   c.syntax = "casento checklist [taxon name]"
-  c.description "Generate a checklist of unique taxa from occurrences matching the search parameters."
+  c.description = "Generate a checklist of unique taxa from occurrences matching the search parameters."
   c.option "--rank RANK", String, "Generate a checklist for names at this rank"
   c.action do |args, opts|
     occurrences = search(args, opts)

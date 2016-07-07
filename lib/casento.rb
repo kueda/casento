@@ -34,7 +34,8 @@ module Casento
     params["StateProv"] = opts[:state] if opts[:state]
     params["County"] = opts[:county] if opts[:county]
     params["Ord"] = opts[:order] if opts[:order]
-    %w(Family Genus Species Subspecies).each do |rank|
+    params["Subord"] = opts[:suborder] if opts[:suborder]
+    %w(Subfamily Superfamily Family Tribe Genus Species Subspecies).each do |rank|
       val = opts[rank.to_sym] || opts[rank.downcase.to_sym]
       params[rank] = val if val
     end
